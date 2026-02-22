@@ -13,18 +13,44 @@ public class raya {
         while (turno < 9) {
             mostrarTablero(tablero);
             System.out.println("Turno del jugador " + jugadorActual);
-            System.out.print("Introduce fila (0-2): ");
-            int fila = lector.nextInt();
-            System.out.print("Introduce columna (0-2): ");
-            int columna = lector.nextInt();
+
+            int fila = -1;
+            int columna = -1;
+            while (true) {
+                System.out.print("Introduce fila (0-2): ");
+                if (lector.hasNextInt()) {
+                    fila = lector.nextInt();
+                    if (fila >= 0 && fila <= 2) break;
+                    else System.out.println("Fila fuera de rango. Intenta de nuevo.");
+                } else {
+                    System.out.println("Debes introducir un número.");
+                    lector.next();
+                }
+            }
+
+
+            while (true) {
+                System.out.print("Introduce columna (0-2): ");
+                if (lector.hasNextInt()) {
+                    columna = lector.nextInt();
+                    if (columna >= 0 && columna <= 2) break;
+                    else System.out.println("Columna fuera de rango. Intenta de nuevo.");
+                } else {
+                    System.out.println("Debes introducir un número.");
+                    lector.next();
+                }
+            }
+
 
             if (tablero[fila][columna] != '\0') {
                 System.out.println("Casilla ocupada, elige otra.");
                 continue;
             }
 
+
             tablero[fila][columna] = jugadorActual;
             turno++;
+
 
             if (hayVictoria(tablero, jugadorActual)) {
                 mostrarTablero(tablero);
@@ -33,11 +59,8 @@ public class raya {
                 return;
             }
 
-            if (jugadorActual == 'X') {
-                jugadorActual = 'O';
-            } else {
-                jugadorActual = 'X';
-            }
+
+            jugadorActual = (jugadorActual == 'X') ? 'O' : 'X';
         }
 
         mostrarTablero(tablero);
@@ -45,17 +68,14 @@ public class raya {
         lector.close();
     }
 
+
     public static void mostrarTablero(char[][] tablero) {
         System.out.println("\n  0   1   2");
         for (int i = 0; i < tablero.length; i++) {
             System.out.print(i + " ");
             for (int j = 0; j < tablero[i].length; j++) {
                 char casilla = tablero[i][j];
-                if (casilla == '\0') {
-                    System.out.print("·");
-                } else {
-                    System.out.print(casilla);
-                }
+                System.out.print((casilla == '\0') ? "·" : casilla);
                 if (j < 2) System.out.print(" | ");
             }
             System.out.println();
@@ -64,74 +84,46 @@ public class raya {
         System.out.println();
     }
 
+
     public static boolean hayVictoria(char[][] tablero, char jugador) {
-        return victoriaHorizontal(tablero) ||
-               victoriaVertical(tablero) ||
-               victoriaDiagonal(tablero);
+        return victoriaHorizontal(tablero, jugador) ||
+               victoriaVertical(tablero, jugador) ||
+               victoriaDiagonal(tablero, jugador);
     }
 
-    public static boolean victoriaHorizontal(char[][] matriz) {
-        boolean hayVictoria = false;
-        for (int i = 0; i < matriz.length; i++) {
-            char primeraCasilla = matriz[i][0];
-
-            if (primeraCasilla == '\0' || primeraCasilla == ' ') {
-                continue;
-            }
-
-            boolean filaCompleta = true;
-            for (int j = 1; j < matriz[i].length; j++) {
-                if (matriz[i][j] != primeraCasilla) {
-                    filaCompleta = false;
-                    break;
-                }
-            }
-
-            if (filaCompleta) {
-                hayVictoria = true;
-                break;
-            }
-        }
-        return hayVictoria;
-    }
-
-    public static boolean victoriaVertical(char[][] matriz) {
-        for (int j = 0; j < matriz[0].length; j++) {
-            char primeraCasilla = matriz[0][j];
-
-            if (primeraCasilla == '\0' || primeraCasilla == ' ') {
-                continue;
-            }
-
-            boolean columnaCompleta = true;
-            for (int i = 1; i < matriz.length; i++) {
-                if (matriz[i][j] != primeraCasilla) {
-                    columnaCompleta = false;
-                    break;
-                }
-            }
-
-            if (columnaCompleta) {
+    public static boolean victoriaHorizontal(char[][] tablero, char jugador) {
+        for (int i = 0; i < tablero.length; i++) {
+            if (tablero[i][0] == jugador &&
+                tablero[i][1] == jugador &&
+                tablero[i][2] == jugador) {
                 return true;
             }
         }
         return false;
     }
 
-    public static boolean victoriaDiagonal(char[][] matriz) {
-        char esquinaIzquierda = matriz[0][0];
-        if (esquinaIzquierda != '\0' && esquinaIzquierda != ' ') {
-            if (matriz[1][1] == esquinaIzquierda && matriz[2][2] == esquinaIzquierda) {
+    public static boolean victoriaVertical(char[][] tablero, char jugador) {
+        for (int j = 0; j < tablero[0].length; j++) {
+            if (tablero[0][j] == jugador &&
+                tablero[1][j] == jugador &&
+                tablero[2][j] == jugador) {
                 return true;
             }
         }
-        char esquinaDerecha = matriz[0][2];
-        if (esquinaDerecha != '\0' && esquinaDerecha != ' ') {
-            if (matriz[1][1] == esquinaDerecha && matriz[2][0] == esquinaDerecha) {
-                return true;
-            }
-        }
+        return false;
+    }
 
+    public static boolean victoriaDiagonal(char[][] tablero, char jugador) {
+        if (tablero[0][0] == jugador &&
+            tablero[1][1] == jugador &&
+            tablero[2][2] == jugador) {
+            return true;
+        }
+        if (tablero[0][2] == jugador &&
+            tablero[1][1] == jugador &&
+            tablero[2][0] == jugador) {
+            return true;
+        }
         return false;
     }
 }
