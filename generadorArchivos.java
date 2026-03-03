@@ -6,105 +6,114 @@ import java.util.List;
 
 public class generadorArchivos {
     static class LogEntry implements Serializable {
-        private static final long serialVersionUID = 1L; // ID de versión para serialización.
+        private static final long serialVersionUID = 1L;
 
-        private final String fechaHora; // Guarda la fecha/hora del log.
-        private final String mensaje; // Guarda el mensaje del log.
+        private final String fechaHora;
+        private final String mensaje;
 
         public LogEntry(String mensaje) {
-            this.fechaHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); // Fecha/hora actual con formato.
-            this.mensaje = mensaje; // Mensaje recibido por parámetro.
+            this.fechaHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            this.mensaje = mensaje;
         }
 
         @Override
         public String toString() {
-            return "[" + fechaHora + "] " + mensaje; // Texto final de cada entrada de log.
+            return "[" + fechaHora + "] " + mensaje;
         }
     }
 
     public static void guardarLogTxt(List<LogEntry> entradas, String rutaFichero) {
         try {
-            FileWriter escritor = new FileWriter(rutaFichero, true); // Abre/crea archivo txt en modo append.
-            BufferedWriter escritorBuffer = new BufferedWriter(escritor); // Buffer para escribir más eficiente.
+            FileWriter escritor = new FileWriter(rutaFichero, true);
+            BufferedWriter escritorBuffer = new BufferedWriter(escritor);
 
             for (LogEntry entrada : entradas) {
-                escritorBuffer.write(entrada.toString()); // Escribe una entrada.
-                escritorBuffer.newLine(); // Salto de línea.
+                escritorBuffer.write(entrada.toString());
+                escritorBuffer.newLine();
             }
 
-            escritorBuffer.close(); // Cierra el buffer (y también el writer interno).
-            System.out.println("Log .txt guardado en: " + rutaFichero); // Mensaje de éxito.
+            escritorBuffer.close();
+            System.out.println("Log .txt guardado en: " + rutaFichero);
 
         } catch (IOException error) {
-            System.out.println("Error al escribir el fichero .txt: " + error.getMessage()); // Muestra error de escritura.
+            System.out.println("Error al escribir el fichero .txt: " + error.getMessage());
         }
     }
 
     public static void leerLogTxt(String rutaFichero) {
         try {
-            FileReader lector = new FileReader(rutaFichero); // Abre archivo txt para leer.
-            BufferedReader lectorBuffer = new BufferedReader(lector); // Buffer de lectura.
-            String linea; // Variable para guardar cada línea leída.
+            FileReader lector = new FileReader(rutaFichero);
+            BufferedReader lectorBuffer = new BufferedReader(lector);
+            String linea;
 
             while ((linea = lectorBuffer.readLine()) != null) {
-                System.out.println(linea); // Imprime cada línea del archivo.
+                System.out.println(linea);
             }
 
-            lectorBuffer.close(); // Cierra el buffer (y el reader).
+            lectorBuffer.close();
         } catch (IOException error) {
-            System.out.println("Error al leer el fichero .txt: " + error.getMessage()); // Muestra error de lectura.
+            System.out.println("Error al leer el ficheo .txt: " + error.getMessage());
         }
     }
 
     public static void guardarLogSer(List<LogEntry> entradas, String rutaFichero) {
         try {
-            FileOutputStream flujoSalida = new FileOutputStream(rutaFichero); // Abre archivo binario para salida.
-            ObjectOutputStream escritorObjetos = new ObjectOutputStream(flujoSalida); // Writer para objetos serializados.
+            FileOutputStream flujoSalida = new FileOutputStream(rutaFichero);
+            ObjectOutputStream escritorObjetos = new ObjectOutputStream(flujoSalida);
 
-            escritorObjetos.writeObject(entradas); // Serializa toda la lista de entradas.
-            escritorObjetos.close(); // Cierra el stream.
-
-            System.out.println("Log .ser guardado en: " + rutaFichero); // Mensaje de éxito.
-
-        } catch (IOException error) {
-            System.out.println("Error al serializar el fichero .ser: " + error.getMessage()); // Muestra error de serialización.
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void leerLogSer(String rutaFichero) {
-        try {
-            FileInputStream flujoEntrada = new FileInputStream(rutaFichero); // Abre archivo .ser para leer.
-            ObjectInputStream lectorObjetos = new ObjectInputStream(flujoEntrada); // Reader de objetos.
-
-            List<LogEntry> entradas = (List<LogEntry>) lectorObjetos.readObject(); // Recupera la lista serializada.
-            lectorObjetos.close(); // Cierra el stream.
-
-            System.out.println("\n--- Contenido del log serializado ---"); // Título en consola.
+            // Escribir cada objeto por separado
             for (LogEntry entrada : entradas) {
-                System.out.println(entrada); // Muestra cada entrada deserializada.
+                escritorObjetos.writeObject(entrada);
             }
 
-        } catch (IOException | ClassNotFoundException error) {
-            System.out.println("Error al deserializar el fichero .ser: " + error.getMessage()); // Muestra error de lectura .ser.
+            escritorObjetos.close();
+            System.out.println("Log .ser guardado en: " + rutaFichero);
+
+        } catch (IOException error) {
+            System.out.println("Error al serializar el ficheo .ser: " + error.getMessage());
         }
     }
+
+    public static void leerLogSer(String rutaFichero) {
+        try {
+            FileInputStream flujoEntrada = new FileInputStream(rutaFichero);
+            ObjectInputStream lectorObjetos = new ObjectInputStream(flujoEntrada);
+
+            System.out.println("\n--- Contenido del log serializado ---");
+            
+            // Leer cada objeto por separado
+            try {
+                while (true) {
+                    LogEntry entrada = (LogEntry) lectorObjetos.readObject();
+                    System.out.println(entrada);
+                }
+            } catch (EOFException e) {
+                // Fin del archivo
+            }
+
+            lectorObjetos.close();
+
+        } catch (IOException | ClassNotFoundException error) {
+            System.out.println("Error al deserializar el ficheo .ser: " + error.getMessage());
+        }
+    }
+
     public static void main(String[] args) {
-        List<LogEntry> registros = new ArrayList<>(); // Lista donde se guardan los logs de ejemplo.
-        registros.add(new LogEntry("Aplicación iniciada correctamente")); // Entrada 1.
-        registros.add(new LogEntry("Usuario 'admin' ha iniciado sesión")); // Entrada 2.
-        registros.add(new LogEntry("Intento de acceso a recurso restringido")); // Entrada 3.
-        registros.add(new LogEntry("Conexión con la base de datos fallida")); // Entrada 4.
-        registros.add(new LogEntry("Aplicación cerrada")); // Entrada 5.
+        List<LogEntry> registros = new ArrayList<>();
+        registros.add(new LogEntry("Aplicacion iniciada correctamente"));
+        registros.add(new LogEntry("Usuario 'admin' ha iniciado sesion"));
+        registros.add(new LogEntry("Intento de acceso a recurso restringido"));
+        registros.add(new LogEntry("Conexion con la base de datos fallida"));
+        registros.add(new LogEntry("Aplicacion cerrada"));
 
-        String rutaTxt = "registro.log.txt"; // Nombre del archivo txt.
-        guardarLogTxt(registros, rutaTxt); // Guarda los logs en txt.
+        String rutaTxt = "registro.log.txt";
+        guardarLogTxt(registros, rutaTxt);
 
-        System.out.println("\n--- Contenido del log .txt ---"); // Título para mostrar el txt.
-        leerLogTxt(rutaTxt); // Lee e imprime el txt.
+        System.out.println("\n--- Contenido del log .txt ---");
+        leerLogTxt(rutaTxt);
 
-        String rutaSer = "registro.log.ser"; // Nombre del archivo serializado.
-        guardarLogSer(registros, rutaSer); // Guarda la lista en .ser.
-        leerLogSer(rutaSer); // Lee el .ser y lo muestra.
+        String rutaSer = "registro.log.ser";
+        guardarLogSer(registros, rutaSer);
+        leerLogSer(rutaSer);
     }
 }
